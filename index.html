@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cognita - Workshop Presencial</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: '#050505',
+              spotlight: '#380B0F',
+              accent: '#FF4D5A',
+              accentHover: '#FF3342',
+              textBody: '#B3B3B3',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              handwriting: ['Caveat', 'cursive'],
+            },
+            boxShadow: {
+              'glow': '0 0 20px rgba(255, 77, 90, 0.5)',
+              'video-glow': '0 20px 50px -10px rgba(255, 77, 90, 0.15)',
+            }
+          },
+        },
+      }
+    </script>
+    <!-- Fonts: Inter for main text, Caveat for the handwritten badge -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+    
+    <!-- VTurb / ConverteAI Performance Optimization -->
+    <link rel="preconnect" href="https://scripts.converteai.net">
+    <link rel="preconnect" href="https://cdn.converteai.net">
+    <link rel="dns-prefetch" href="https://scripts.converteai.net">
+    <link rel="dns-prefetch" href="https://cdn.converteai.net">
+
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "vite": "https://esm.sh/vite@^7.3.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-background text-textBody font-sans antialiased overflow-x-hidden">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
