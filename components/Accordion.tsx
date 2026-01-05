@@ -22,7 +22,7 @@ export const Accordion: React.FC<AccordionProps> = ({ items }) => {
         >
           <button
             onClick={() => toggle(index)}
-            className="w-full flex items-center justify-between p-5 text-left focus:outline-none hover:bg-white/5 hover:scale-[1.02] transition-all duration-200"
+            className="w-full flex items-center justify-between p-5 text-left focus:outline-none hover:bg-white/5 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200"
           >
             <span className={`font-semibold text-lg ${openIndex === index ? 'text-white' : 'text-gray-400'}`}>
               {item.question}

@@ -40,15 +40,16 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-textBody selection:bg-accent selection:text-white">
       
-      {/* Background Spotlight Effect */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-spotlight opacity-60 blur-[120px] rounded-full pointer-events-none z-0"></div>
+      {/* Background Spotlight Effect - RESTORED STRONG RED */}
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-accent/25 blur-[120px] rounded-[100%] pointer-events-none z-0 mix-blend-screen"></div>
+      <div className="absolute top-[-50px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/15 blur-[80px] rounded-full pointer-events-none z-0"></div>
 
       <main className="relative z-10 px-4 md:px-8 max-w-6xl mx-auto pt-16 pb-24 space-y-24 md:space-y-32">
         
         {/* SECTION 1: HERO */}
         <section className="text-center space-y-8 animate-[fadeIn_1s_ease-out]">
           <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-wider text-accent uppercase mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-xs font-semibold tracking-wider text-accent uppercase mb-4 shadow-[0_0_15px_rgba(255,77,90,0.3)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
@@ -56,9 +57,9 @@ const App: React.FC = () => {
               Workshop Exclusivo
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-lg">
               Por Que Sua Agência de IA Vende a R$3k <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">Quando Poderia Fechar R$50k?</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500">Quando Poderia Fechar R$50k?</span>
             </h1>
             
             <p className="text-lg md:text-xl max-w-2xl mx-auto text-gray-400 font-light">
@@ -71,7 +72,7 @@ const App: React.FC = () => {
 
         {/* SECTION 2: CTA & OFFER */}
         <section className="relative">
-          <div className="absolute inset-0 bg-accent/5 blur-3xl rounded-full -z-10 transform scale-75"></div>
+          <div className="absolute inset-0 bg-accent/10 blur-3xl rounded-full -z-10 transform scale-75 opacity-60"></div>
           
           <div className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-8 md:p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
             {/* Scarcity Badge */}
@@ -99,29 +100,43 @@ const App: React.FC = () => {
                   <CountdownTimer targetDate={WORKSHOP_DATE_ISO} />
               </div>
 
-              <div className="py-6 border-y border-white/5 space-y-2">
-                <p className="text-gray-500 text-lg font-medium line-through">De R$1.497</p>
-                <div className="flex items-end justify-center gap-2 leading-none">
-                  <span className="text-xl text-gray-400 mb-1">Por</span>
-                  <span className="text-5xl md:text-6xl font-extrabold text-white">R$997</span>
+              <div className="py-8 border-y border-white/5 space-y-2">
+                {/* Preço de Ancoragem (Primeiro) */}
+                <p className="text-gray-500 text-xl md:text-2xl font-medium line-through decoration-accent/40 mb-2">
+                  De R$1.497
+                </p>
+
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex flex-col items-center">
+                    <span className="text-4xl md:text-6xl font-extrabold text-white tracking-tight">
+                      4x R$258,38
+                    </span>
+                    <span className="text-lg md:text-xl text-gray-400 font-medium mt-1">
+                      no cartão
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-300 text-lg mt-3">
+                    ou <span className="font-bold text-white">R$997</span> à vista
+                  </p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-4 max-w-md mx-auto pt-2">
                 {/* 
-                   ATENÇÃO: Substitua o href abaixo pelo seu link real de checkout (Hotmart, Kiwify, etc)
+                   ATENÇÃO: Substitua o href abaixo pelo seu link real de checkout
                 */}
                 <Button 
-                  href="https://pay.hotmart.com/SEU_CODIGO_AQUI?checkoutMode=10" 
+                  href="https://www.asaas.com/c/9sl2y2ekek3v7bkt" 
                   target="_blank"
                   fullWidth 
                   pulse 
-                  className="text-lg uppercase tracking-wide"
+                  className="text-base md:text-lg uppercase tracking-wide"
                 >
                   👉 Garantir Minha Vaga Agora
                 </Button>
                 <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
-                  <AlertCircle size={12} /> Compra 100% segura via Hotmart
+                  <AlertCircle size={12} /> Compra 100% segura via Asaas
                 </p>
               </div>
             </div>
@@ -165,7 +180,7 @@ const App: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <p className="text-white font-bold text-xl tracking-tighter">COGNITA.</p>
           <div className="text-sm text-gray-600 space-y-1">
-            <p>Cognita Soluções em IA | CNPJ: 37.687.923/0001-73</p>
+            <p>Cognita Soluções em IA | CNPJ: 34.562.486/0001-73</p>
             <p className="hover:text-accent transition-colors cursor-pointer">Dúvidas: (11) 95716-6850 (WhatsApp)</p>
           </div>
           <p className="text-xs text-gray-700 pt-8">

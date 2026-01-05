@@ -19,7 +19,10 @@ export const Button: React.FC<ButtonProps> = ({
     secondary: "bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm border border-white/10"
   };
 
-  const widthClass = fullWidth ? "w-full py-4 text-lg" : "px-8 py-3 text-base";
+  // Ajuste responsivo: menor no mobile (py-3 text-base), maior no desktop (md:py-4 md:text-lg)
+  const widthClass = fullWidth 
+    ? "w-full py-3 md:py-4 text-base md:text-lg" 
+    : "px-6 md:px-8 py-2.5 md:py-3 text-sm md:text-base";
   
   const pulseClass = pulse ? "animate-[pulse_2s_infinite]" : "";
   
@@ -28,7 +31,7 @@ export const Button: React.FC<ButtonProps> = ({
   const content = (
     <>
       {children}
-      {variant === 'primary' && <ArrowRight className="ml-2 w-5 h-5" />}
+      {variant === 'primary' && <ArrowRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />}
     </>
   );
 
