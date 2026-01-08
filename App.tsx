@@ -6,6 +6,7 @@ import { ScarcityBadge } from './components/ScarcityBadge';
 import { CountdownTimer } from './components/CountdownTimer';
 import { Quote, Calendar, MapPin, AlertCircle } from 'lucide-react';
 import { FAQItem } from './types';
+import { useMetaPixel } from './hooks/useMetaPixel';
 
 const faqItems: FAQItem[] = [
   {
@@ -37,6 +38,9 @@ const WORKSHOP_DATE_ISO = workshopDate.toISOString();
 
 
 const App: React.FC = () => {
+  // Inicializa o Meta Pixel hook (tracking de tempo e scroll já é automático)
+  useMetaPixel();
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-textBody selection:bg-accent selection:text-white">
       

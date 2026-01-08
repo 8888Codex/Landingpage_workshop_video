@@ -1,8 +1,22 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useMetaPixel } from '../hooks/useMetaPixel';
+
+// Duração estimada do vídeo em milissegundos (5 minutos = 300000ms)
+// Ajuste este valor conforme a duração real do seu vídeo
+const ESTIMATED_VIDEO_DURATION_MS = 5 * 60 * 1000;
 
 export const VideoSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const { trackEvent, isAvailable } = useMetaPixel();
+  
+  // Tracking de progresso do vídeo
+  const visibleStartTimeRef = useRef<number | null>(null);
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const trackedProgressRef = useRef<Set<number>>(new Set());
+  const isVisibleRef = useRef<boolean>(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -12,6 +26,120 @@ export const VideoSection: React.FC = () => {
       y: e.clientY - rect.top,
     });
   };
+
+  // Intersection Observer para detectar quando o vídeo está visível
+  useEffect(() => {
+    if (!videoContainerRef.current || !isAvailable) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+            // Vídeo está visível
+            if (!isVisibleRef.current) {
+              isVisibleRef.current = true;
+              visibleStartTimeRef.current = Date.now();
+              startProgressTracking();
+            }
+          } else {
+            // Vídeo não está visível
+            if (isVisibleRef.current) {
+              isVisibleRef.current = false;
+              visibleStartTimeRef.current = null;
+              stopProgressTracking();
+            }
+          }
+        });
+      },
+      {
+        threshold: [0, 0.25, 0.5, 0.75, 1.0],
+        rootMargin: '0px',
+      }
+    );
+
+    observer.observe(videoContainerRef.current);
+
+    return () => {
+      observer.disconnect();
+      stopProgressTracking();
+    };
+  }, [isAvailable]);
+
+  // Função para iniciar o tracking de progresso
+  const startProgressTracking = () => {
+    if (progressTimerRef.current) return;
+
+    const checkProgress = () => {
+      if (!isVisibleRef.current || !visibleStartTimeRef.current) return;
+
+      const visibleTime = Date.now() - visibleStartTimeRef.current;
+      const progressPercentage = Math.round((visibleTime / ESTIMATED_VIDEO_DURATION_MS) * 100);
+      const clampedProgress = Math.min(progressPercentage, 100);
+
+      // Marcos de progresso: 25%, 50%, 75%, 100%
+      const milestones = [25, 50, 75, 100];
+      milestones.forEach((milestone) => {
+        if (clampedProgress >= milestone && !trackedProgressRef.current.has(milestone)) {
+          trackEvent(`VideoProgress${milestone}` as any);
+          trackedProgressRef.current.add(milestone);
+        }
+      });
+
+      // Continuar verificando se ainda está visível
+      if (isVisibleRef.current) {
+        progressTimerRef.current = setTimeout(checkProgress, 1000); // Verificar a cada 1 segundo
+      }
+    };
+
+    checkProgress();
+  };
+
+  // Função para parar o tracking de progresso
+  const stopProgressTracking = () => {
+    if (progressTimerRef.current) {
+      clearTimeout(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+  };
+
+  // Tentar detectar eventos do Panda Video via postMessage (fallback)
+  useEffect(() => {
+    if (!isAvailable) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      // Verificar se a mensagem vem do domínio do Panda Video
+      if (event.origin.includes('pandavideo.com.br')) {
+        try {
+          const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+          
+          // Tentar detectar eventos de play/pause se o Panda Video enviar
+          if (data.type === 'play' || data.event === 'play') {
+            trackEvent('VideoPlay');
+          } else if (data.type === 'pause' || data.event === 'pause') {
+            trackEvent('VideoPause');
+          } else if (data.progress !== undefined) {
+            // Se o Panda Video enviar progresso, usar isso
+            const progress = Math.round(data.progress);
+            const milestones = [25, 50, 75, 100];
+            milestones.forEach((milestone) => {
+              if (progress >= milestone && !trackedProgressRef.current.has(milestone)) {
+                trackEvent(`VideoProgress${milestone}` as any);
+                trackedProgressRef.current.add(milestone);
+              }
+            });
+          }
+        } catch (error) {
+          // Ignorar erros de parsing
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [isAvailable, trackEvent]);
 
   return (
     <div 
@@ -35,23 +163,26 @@ export const VideoSection: React.FC = () => {
       <div className="absolute -inset-1 bg-gradient-to-r from-spotlight via-accent/20 to-spotlight opacity-20 blur-2xl rounded-2xl transition duration-1000 -z-20"></div>
 
       {/* Main Video Container - Aspect Ratio 16:9 with subtle hover scale */}
-      <div className="relative aspect-video w-full bg-black rounded-2xl overflow-hidden shadow-video-glow border border-white/10 z-10 transform transition-transform duration-700 group-hover/wrapper:scale-[1.01]">
+      <div 
+        ref={videoContainerRef}
+        className="relative aspect-video w-full bg-black rounded-2xl overflow-hidden shadow-video-glow border border-white/10 z-10 transform transition-transform duration-700 group-hover/wrapper:scale-[1.01]"
+      >
         
         {/* 
-           ⚠️ VTURB EMBED CONFIGURATION:
-           1. Go to your VTurb/ConverteAI dashboard.
-           2. Copy your unique embed URL (usually: https://scripts.converteai.net/ACCOUNT_ID/players/VIDEO_ID/embed).
-           3. Paste it below in the 'src' attribute.
+           ⚠️ PANDA VIDEO EMBED CONFIGURATION:
+           Vídeo integrado via Panda Video
         */}
         <iframe 
-            id="vturb-player"
-            src="https://scripts.converteai.net/YOUR_ACCOUNT_ID/players/YOUR_VIDEO_ID/embed"
+            ref={iframeRef}
+            id="panda-1f7f2296-126d-46f0-b312-5e330fbb9a85"
+            src="https://player-vz-1bf389a0-d81.tv.pandavideo.com.br/embed/?v=1f7f2296-126d-46f0-b312-5e330fbb9a85"
             className="absolute inset-0 w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
             title="Cognita VSL"
             loading="lazy"
             referrerPolicy="origin"
+            fetchPriority="high"
         ></iframe>
 
         {/* Fallback/Loading Background (Visible behind iframe until loaded) */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { ButtonProps } from '../types';
+import { useMetaPixel } from '../hooks/useMetaPixel';
 
 export const Button: React.FC<ButtonProps> = ({ 
   children, 
@@ -10,8 +11,20 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   href,
   target,
+  onClick,
   ...props 
 }) => {
+  const { trackEvent } = useMetaPixel();
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    // Rastrear clique no botão
+    trackEvent('ButtonClick');
+    
+    // Chamar onClick original se existir
+    if (onClick) {
+      onClick(e as any);
+    }
+  };
   const baseStyles = "inline-flex items-center justify-center rounded-full font-bold transition-all duration-300 transform active:scale-95 cursor-pointer no-underline";
   
   const variants = {
@@ -38,7 +51,12 @@ export const Button: React.FC<ButtonProps> = ({
   // Se houver href, renderiza como link <a>, caso contrário, como <button>
   if (href) {
     return (
-      <a href={href} target={target} className={combinedClasses}>
+      <a 
+        href={href} 
+        target={target} 
+        className={combinedClasses}
+        onClick={handleClick}
+      >
         {content}
       </a>
     );
@@ -47,6 +65,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button 
       className={combinedClasses}
+      onClick={handleClick}
       {...props}
     >
       {content}
