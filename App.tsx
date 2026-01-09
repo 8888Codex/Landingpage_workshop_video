@@ -7,6 +7,7 @@ import { CountdownTimer } from './components/CountdownTimer';
 import { Quote, Calendar, MapPin, AlertCircle } from 'lucide-react';
 import { FAQItem } from './types';
 import { useMetaPixel } from './hooks/useMetaPixel';
+import { VideoProvider, useVideoContext } from './contexts/VideoContext';
 
 const faqItems: FAQItem[] = [
   {
@@ -19,7 +20,7 @@ const faqItems: FAQItem[] = [
   },
   {
     question: "Posso parcelar?",
-    answer: "Até 12x no cartão de crédito."
+    answer: "Até 4x no cartão de crédito."
   },
   {
     question: "Tem online?",
@@ -37,9 +38,10 @@ if (workshopDate < new Date()) {
 const WORKSHOP_DATE_ISO = workshopDate.toISOString();
 
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   // Inicializa o Meta Pixel hook (tracking de tempo e scroll já é automático)
   useMetaPixel();
+  const { showSecondFold } = useVideoContext();
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-textBody selection:bg-accent selection:text-white">
@@ -74,7 +76,8 @@ const App: React.FC = () => {
           <VideoSection />
         </section>
 
-        {/* SECTION 2: CTA & OFFER */}
+        {/* SECTION 2: CTA & OFFER - Mostrar apenas após 13 minutos de vídeo */}
+        {showSecondFold && (
         <section className="relative">
           <div className="absolute inset-0 bg-accent/10 blur-3xl rounded-full -z-10 transform scale-75 opacity-60"></div>
           
@@ -94,7 +97,10 @@ const App: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <MapPin className="text-accent w-5 h-5" />
-                  <span>Av. Roque Petroni Junior, 850 • 24/01</span>
+                  <span>Morumbi</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-accent font-bold text-lg md:text-xl">24/01</span>
                 </div>
               </div>
               
@@ -128,10 +134,10 @@ const App: React.FC = () => {
 
               <div className="flex flex-col gap-4 max-w-md mx-auto pt-2">
                 {/* 
-                   ATENÇÃO: Substitua o href abaixo pelo seu link real de checkout
+                   Link de checkout atualizado para Greenn
                 */}
                 <Button 
-                  href="https://www.asaas.com/c/9sl2y2ekek3v7bkt" 
+                  href="https://payfast.greenn.com.br/pre-checkout/153224" 
                   target="_blank"
                   fullWidth 
                   pulse 
@@ -140,14 +146,16 @@ const App: React.FC = () => {
                   👉 Garantir Minha Vaga Agora
                 </Button>
                 <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
-                  <AlertCircle size={12} /> Compra 100% segura via Asaas
+                  <AlertCircle size={12} /> Compra 100% segura via Greenn
                 </p>
               </div>
             </div>
           </div>
         </section>
+        )}
 
-        {/* SECTION 3: SOCIAL PROOF */}
+        {/* SECTION 3: SOCIAL PROOF - Mostrar apenas após 13 minutos de vídeo */}
+        {showSecondFold && (
         <section className="max-w-2xl mx-auto">
           <div className="bg-[#0F0F0F] border border-white/5 p-8 rounded-2xl relative">
             <Quote className="absolute top-6 left-6 text-white/10 w-10 h-10 -z-0" />
@@ -167,8 +175,10 @@ const App: React.FC = () => {
             </div>
           </div>
         </section>
+        )}
 
-        {/* SECTION 4: FAQ */}
+        {/* SECTION 4: FAQ - Mostrar apenas após 13 minutos de vídeo */}
+        {showSecondFold && (
         <section className="space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold text-white">Dúvidas Frequentes</h2>
@@ -176,10 +186,12 @@ const App: React.FC = () => {
           </div>
           <Accordion items={faqItems} />
         </section>
+        )}
 
       </main>
 
-      {/* SECTION 5: FOOTER */}
+      {/* SECTION 5: FOOTER - Mostrar apenas após 13 minutos de vídeo */}
+      {showSecondFold && (
       <footer className="border-t border-white/5 bg-black py-12 px-4">
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <p className="text-white font-bold text-xl tracking-tighter">COGNITA.</p>
@@ -192,7 +204,16 @@ const App: React.FC = () => {
           </p>
         </div>
       </footer>
+      )}
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <VideoProvider>
+      <AppContent />
+    </VideoProvider>
   );
 };
 

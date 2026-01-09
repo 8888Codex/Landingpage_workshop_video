@@ -1,9 +1,12 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useMetaPixel } from '../hooks/useMetaPixel';
+import { useVideoContext } from '../contexts/VideoContext';
 
 // Duração estimada do vídeo em milissegundos (5 minutos = 300000ms)
 // Ajuste este valor conforme a duração real do seu vídeo
 const ESTIMATED_VIDEO_DURATION_MS = 5 * 60 * 1000;
+// Tempo em segundos para mostrar a segunda dobra (13 minutos = 780 segundos)
+const SECOND_FOLD_TIME_SECONDS = 13 * 60; // 780 segundos
 
 export const VideoSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -11,12 +14,15 @@ export const VideoSection: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const { trackEvent, isAvailable } = useMetaPixel();
+  const { setShowSecondFold, setVideoPlayTime, setIsVideoPlaying } = useVideoContext();
   
   // Tracking de progresso do vídeo
   const visibleStartTimeRef = useRef<number | null>(null);
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const trackedProgressRef = useRef<Set<number>>(new Set());
   const isVisibleRef = useRef<boolean>(false);
+  const playStartTimeRef = useRef<number | null>(null); // Quando o vídeo começou a tocar
+  const playTimeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -27,46 +33,16 @@ export const VideoSection: React.FC = () => {
     });
   };
 
-  // Intersection Observer para detectar quando o vídeo está visível
-  useEffect(() => {
-    if (!videoContainerRef.current || !isAvailable) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-            // Vídeo está visível
-            if (!isVisibleRef.current) {
-              isVisibleRef.current = true;
-              visibleStartTimeRef.current = Date.now();
-              startProgressTracking();
-            }
-          } else {
-            // Vídeo não está visível
-            if (isVisibleRef.current) {
-              isVisibleRef.current = false;
-              visibleStartTimeRef.current = null;
-              stopProgressTracking();
-            }
-          }
-        });
-      },
-      {
-        threshold: [0, 0.25, 0.5, 0.75, 1.0],
-        rootMargin: '0px',
-      }
-    );
-
-    observer.observe(videoContainerRef.current);
-
-    return () => {
-      observer.disconnect();
-      stopProgressTracking();
-    };
-  }, [isAvailable]);
+  // Função para parar o tracking de progresso
+  const stopProgressTracking = useCallback(() => {
+    if (progressTimerRef.current) {
+      clearTimeout(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+  }, []);
 
   // Função para iniciar o tracking de progresso
-  const startProgressTracking = () => {
+  const startProgressTracking = useCallback(() => {
     if (progressTimerRef.current) return;
 
     const checkProgress = () => {
@@ -92,15 +68,93 @@ export const VideoSection: React.FC = () => {
     };
 
     checkProgress();
-  };
+  }, [trackEvent]);
 
-  // Função para parar o tracking de progresso
-  const stopProgressTracking = () => {
-    if (progressTimerRef.current) {
-      clearTimeout(progressTimerRef.current);
-      progressTimerRef.current = null;
+  // Função para parar o tracking de tempo de reprodução
+  const stopPlayTimeTracking = useCallback(() => {
+    if (playTimeTimerRef.current) {
+      clearTimeout(playTimeTimerRef.current);
+      playTimeTimerRef.current = null;
     }
-  };
+    // Não resetar playStartTimeRef para manter o tempo acumulado se o vídeo pausar
+  }, []);
+
+  // Função para rastrear tempo de reprodução do vídeo
+  const startPlayTimeTracking = useCallback(() => {
+    if (playTimeTimerRef.current) return;
+    
+    if (!playStartTimeRef.current) {
+      playStartTimeRef.current = Date.now();
+      setIsVideoPlaying(true);
+    }
+
+    const updatePlayTime = () => {
+      if (!playStartTimeRef.current) return;
+
+      const elapsedSeconds = Math.floor((Date.now() - playStartTimeRef.current) / 1000);
+      setVideoPlayTime(elapsedSeconds);
+
+      // Quando atingir 13 minutos (780 segundos), mostrar a segunda dobra
+      if (elapsedSeconds >= SECOND_FOLD_TIME_SECONDS) {
+        setShowSecondFold(true);
+      }
+
+      // Continuar atualizando se ainda estiver tocando
+      if (playStartTimeRef.current) {
+        playTimeTimerRef.current = setTimeout(updatePlayTime, 1000); // Atualizar a cada 1 segundo
+      }
+    };
+
+    updatePlayTime();
+  }, [setShowSecondFold, setVideoPlayTime, setIsVideoPlaying]);
+
+  // Intersection Observer para detectar quando o vídeo está visível
+  useEffect(() => {
+    if (!videoContainerRef.current || !isAvailable) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+            // Vídeo está visível
+            if (!isVisibleRef.current) {
+              isVisibleRef.current = true;
+              visibleStartTimeRef.current = Date.now();
+              startProgressTracking();
+              
+              // Assumir que o vídeo começou a tocar quando fica visível
+              // Iniciar tracking de tempo de reprodução após um pequeno delay
+              // para dar tempo do usuário clicar no play
+              setTimeout(() => {
+                if (!playStartTimeRef.current) {
+                  startPlayTimeTracking();
+                }
+              }, 2000); // 2 segundos após ficar visível
+            }
+          } else {
+            // Vídeo não está visível
+            if (isVisibleRef.current) {
+              isVisibleRef.current = false;
+              visibleStartTimeRef.current = null;
+              stopProgressTracking();
+            }
+          }
+        });
+      },
+      {
+        threshold: [0, 0.25, 0.5, 0.75, 1.0],
+        rootMargin: '0px',
+      }
+    );
+
+    observer.observe(videoContainerRef.current);
+
+    return () => {
+      observer.disconnect();
+      stopProgressTracking();
+    };
+  }, [isAvailable, startProgressTracking, startPlayTimeTracking, stopProgressTracking]);
+
 
   // Tentar detectar eventos do Panda Video via postMessage (fallback)
   useEffect(() => {
@@ -115,8 +169,11 @@ export const VideoSection: React.FC = () => {
           // Tentar detectar eventos de play/pause se o Panda Video enviar
           if (data.type === 'play' || data.event === 'play') {
             trackEvent('VideoPlay');
+            startPlayTimeTracking(); // Iniciar tracking quando o vídeo começar a tocar
           } else if (data.type === 'pause' || data.event === 'pause') {
             trackEvent('VideoPause');
+            stopPlayTimeTracking(); // Parar tracking quando pausar
+            setIsVideoPlaying(false);
           } else if (data.progress !== undefined) {
             // Se o Panda Video enviar progresso, usar isso
             const progress = Math.round(data.progress);
@@ -139,7 +196,31 @@ export const VideoSection: React.FC = () => {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [isAvailable, trackEvent]);
+  }, [isAvailable, trackEvent, setShowSecondFold, setVideoPlayTime, setIsVideoPlaying]);
+
+  // Fallback: Detectar quando o iframe recebe foco (indicando interação com o vídeo)
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    // Observar cliques no container do vídeo como indicador de play
+    const handleClick = () => {
+      if (!playStartTimeRef.current) {
+        startPlayTimeTracking();
+      }
+    };
+
+    const container = videoContainerRef.current;
+    if (container) {
+      container.addEventListener('click', handleClick);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('click', handleClick);
+      }
+    };
+  }, [startPlayTimeTracking]);
 
   return (
     <div 
