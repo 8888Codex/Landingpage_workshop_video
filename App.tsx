@@ -120,7 +120,7 @@ const AppContent: React.FC = () => {
                 <div className="flex flex-col items-center justify-center">
                   <div className="flex flex-col items-center">
                     <span className="text-4xl md:text-6xl font-extrabold text-white tracking-tight">
-                      4x R$258,38
+                      4x R$270,73
                     </span>
                     <span className="text-lg md:text-xl text-gray-400 font-medium mt-1">
                       no cartão
