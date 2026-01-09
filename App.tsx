@@ -7,7 +7,7 @@ import { CountdownTimer } from './components/CountdownTimer';
 import { Quote, Calendar, MapPin, AlertCircle } from 'lucide-react';
 import { FAQItem } from './types';
 import { useMetaPixel } from './hooks/useMetaPixel';
-import { VideoProvider, useVideoContext } from './contexts/VideoContext';
+import { VideoProvider } from './contexts/VideoContext';
 
 const faqItems: FAQItem[] = [
   {
@@ -41,7 +41,9 @@ const WORKSHOP_DATE_ISO = workshopDate.toISOString();
 const AppContent: React.FC = () => {
   // Inicializa o Meta Pixel hook (tracking de tempo e scroll já é automático)
   useMetaPixel();
-  const { showSecondFold } = useVideoContext();
+  
+  // Segunda dobra sempre visível desde o início (melhor para conversão)
+  const showSecondFold = true;
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-textBody selection:bg-accent selection:text-white">
@@ -76,8 +78,7 @@ const AppContent: React.FC = () => {
           <VideoSection />
         </section>
 
-        {/* SECTION 2: CTA & OFFER - Mostrar apenas após 13 minutos de vídeo */}
-        {showSecondFold && (
+        {/* SECTION 2: CTA & OFFER */}
         <section className="relative">
           <div className="absolute inset-0 bg-accent/10 blur-3xl rounded-full -z-10 transform scale-75 opacity-60"></div>
           
@@ -152,10 +153,8 @@ const AppContent: React.FC = () => {
             </div>
           </div>
         </section>
-        )}
 
-        {/* SECTION 3: SOCIAL PROOF - Mostrar apenas após 13 minutos de vídeo */}
-        {showSecondFold && (
+        {/* SECTION 3: SOCIAL PROOF */}
         <section className="max-w-2xl mx-auto">
           <div className="bg-[#0F0F0F] border border-white/5 p-8 rounded-2xl relative">
             <Quote className="absolute top-6 left-6 text-white/10 w-10 h-10 -z-0" />
@@ -175,10 +174,8 @@ const AppContent: React.FC = () => {
             </div>
           </div>
         </section>
-        )}
 
-        {/* SECTION 4: FAQ - Mostrar apenas após 13 minutos de vídeo */}
-        {showSecondFold && (
+        {/* SECTION 4: FAQ */}
         <section className="space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold text-white">Dúvidas Frequentes</h2>
@@ -186,12 +183,10 @@ const AppContent: React.FC = () => {
           </div>
           <Accordion items={faqItems} />
         </section>
-        )}
 
       </main>
 
-      {/* SECTION 5: FOOTER - Mostrar apenas após 13 minutos de vídeo */}
-      {showSecondFold && (
+      {/* SECTION 5: FOOTER */}
       <footer className="border-t border-white/5 bg-black py-12 px-4">
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <p className="text-white font-bold text-xl tracking-tighter">COGNITA.</p>
@@ -204,7 +199,6 @@ const AppContent: React.FC = () => {
           </p>
         </div>
       </footer>
-      )}
     </div>
   );
 };
